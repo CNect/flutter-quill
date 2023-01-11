@@ -624,15 +624,28 @@ class RawEditorState extends EditorState
   List<Widget> _buildChildren(Document doc, BuildContext context) {
     final result = <Widget>[];
     final indentLevelCounts = <int, int>{};
+    var blockIndex = 0;
+    var sameIndentIndex = <int, int>{};
+
     for (final node in doc.root.children) {
       if (node is Line) {
+        blockIndex = 0;
         final editableTextLine = _getEditableTextLineFromNode(node, context);
         result.add(Directionality(
             textDirection: getDirectionOfNode(node), child: editableTextLine));
+        sameIndentIndex = {};
       } else if (node is Block) {
         final attrs = node.style.attributes;
+        final children = node.children.length;
+        final indent = node.style.attributes[Attribute.indent.key]?.value ?? 0;
+        final prevIndentIndex = sameIndentIndex[indent];
+
+        final indentIndex = prevIndentIndex == null ? 0 : prevIndentIndex + 1;
+
         final editableTextBlock = EditableTextBlock(
             block: node,
+            sameIndentIndex: indentIndex,
+            blockIndex: blockIndex,
             controller: controller,
             textDirection: _textDirection,
             scrollBottomInset: widget.scrollBottomInset,
@@ -655,6 +668,18 @@ class RawEditorState extends EditorState
             customStyleBuilder: widget.customStyleBuilder);
         result.add(Directionality(
             textDirection: getDirectionOfNode(node), child: editableTextBlock));
+        // blockIndex += children;
+        blockIndex += 1;
+        if (indent == 0) {
+          sameIndentIndex = {indent: indentIndex - 1 + children};
+        } else {
+          sameIndentIndex[indent] = indentIndex - 1 + children;
+        }
+        if (node.style.attributes[Attribute.ol.key]?.value !=
+                Attribute.ol.value &&
+            indent == 0) {
+          sameIndentIndex = {};
+        }
       } else {
         throw StateError('Unreachable.');
       }

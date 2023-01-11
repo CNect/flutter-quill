@@ -2,6 +2,8 @@ import 'dart:collection';
 
 import 'package:quiver/core.dart';
 
+import '../../../flutter_quill.dart';
+
 enum AttributeScope {
   INLINE, // refer to https://quilljs.com/docs/formats/#inline
   BLOCK, // refer to https://quilljs.com/docs/formats/#block
@@ -42,6 +44,8 @@ class Attribute<T> {
     Attribute.style.key: Attribute.style,
     Attribute.token.key: Attribute.token,
     Attribute.script.key: Attribute.script,
+    Attribute.subscript.key: Attribute.subscript,
+    Attribute.superscript.key: Attribute.superscript,
   });
 
   static const BoldAttribute bold = BoldAttribute();
@@ -92,6 +96,11 @@ class Attribute<T> {
 
   static const ScriptAttribute script = ScriptAttribute('');
 
+  static const superSubscript = SuperSubscriptAttribute(null);
+  static const subscript = SuperSubscriptAttribute('subscript');
+
+  static const superscript = SuperSubscriptAttribute('superscript');
+
   static const String mobileWidth = 'mobileWidth';
 
   static const String mobileHeight = 'mobileHeight';
@@ -110,6 +119,8 @@ class Attribute<T> {
     Attribute.color.key,
     Attribute.background.key,
     Attribute.placeholder.key,
+    Attribute.subscript.key,
+    Attribute.superscript.key,
   };
 
   static final Set<String> blockKeys = LinkedHashSet.of({
@@ -241,6 +252,11 @@ class Attribute<T> {
   String toString() {
     return 'Attribute{key: $key, scope: $scope, value: $value}';
   }
+}
+
+class SuperSubscriptAttribute extends Attribute<String?> {
+  const SuperSubscriptAttribute(String? value)
+      : super('super-subscript', AttributeScope.INLINE, value);
 }
 
 class BoldAttribute extends Attribute<bool> {

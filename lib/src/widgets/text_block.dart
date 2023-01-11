@@ -52,28 +52,33 @@ const List<String> romanNumbers = [
 ];
 
 class EditableTextBlock extends StatelessWidget {
-  const EditableTextBlock(
-      {required this.block,
-      required this.controller,
-      required this.textDirection,
-      required this.scrollBottomInset,
-      required this.verticalSpacing,
-      required this.textSelection,
-      required this.color,
-      required this.styles,
-      required this.enableInteractiveSelection,
-      required this.hasFocus,
-      required this.contentPadding,
-      required this.embedBuilder,
-      required this.linkActionPicker,
-      required this.cursorCont,
-      required this.indentLevelCounts,
-      required this.onCheckboxTap,
-      required this.readOnly,
-      this.onLaunchUrl,
-      this.customStyleBuilder,
-      Key? key});
+  const EditableTextBlock({
+    required this.sameIndentIndex,
+    required this.blockIndex,
+    required this.block,
+    required this.controller,
+    required this.textDirection,
+    required this.scrollBottomInset,
+    required this.verticalSpacing,
+    required this.textSelection,
+    required this.color,
+    required this.styles,
+    required this.enableInteractiveSelection,
+    required this.hasFocus,
+    required this.contentPadding,
+    required this.embedBuilder,
+    required this.linkActionPicker,
+    required this.cursorCont,
+    required this.indentLevelCounts,
+    required this.onCheckboxTap,
+    required this.readOnly,
+    this.onLaunchUrl,
+    this.customStyleBuilder,
+    Key? key,
+  });
 
+  final int blockIndex;
+  final int sameIndentIndex;
   final Block block;
   final QuillController controller;
   final TextDirection textDirection;
@@ -100,14 +105,15 @@ class EditableTextBlock extends StatelessWidget {
 
     final defaultStyles = QuillStyles.getStyles(context, false);
     return _EditableBlock(
-        block: block,
-        textDirection: textDirection,
-        padding: verticalSpacing as Tuple2<double, double>,
-        scrollBottomInset: scrollBottomInset,
-        decoration: _getDecorationForBlock(block, defaultStyles) ??
-            const BoxDecoration(),
-        contentPadding: contentPadding,
-        children: _buildChildren(context, indentLevelCounts));
+      block: block,
+      textDirection: textDirection,
+      padding: verticalSpacing as Tuple2<double, double>,
+      scrollBottomInset: scrollBottomInset,
+      decoration:
+          _getDecorationForBlock(block, defaultStyles) ?? const BoxDecoration(),
+      contentPadding: contentPadding,
+      children: _buildChildren(context, sameIndentIndex, indentLevelCounts),
+    );
   }
 
   BoxDecoration? _getDecorationForBlock(
@@ -123,7 +129,10 @@ class EditableTextBlock extends StatelessWidget {
   }
 
   List<Widget> _buildChildren(
-      BuildContext context, Map<int, int> indentLevelCounts) {
+    BuildContext context,
+    int sameIndentIndex,
+    Map<int, int> indentLevelCounts,
+  ) {
     final defaultStyles = QuillStyles.getStyles(context, false);
     final count = block.children.length;
     final children = <Widget>[];
@@ -132,7 +141,14 @@ class EditableTextBlock extends StatelessWidget {
       index++;
       final editableTextLine = EditableTextLine(
           line,
-          _buildLeading(context, line, index, indentLevelCounts, count),
+          _buildLeading(
+            context,
+            line,
+            index,
+            sameIndentIndex,
+            indentLevelCounts,
+            count,
+          ),
           TextLine(
             line: line,
             textDirection: textDirection,
@@ -161,11 +177,16 @@ class EditableTextBlock extends StatelessWidget {
   }
 
   Widget? _buildLeading(BuildContext context, Line line, int index,
-      Map<int, int> indentLevelCounts, int count) {
+      int sameIndentIndex, Map<int, int> indentLevelCounts, int count) {
     final defaultStyles = QuillStyles.getStyles(context, false);
     final attrs = line.style.attributes;
     if (attrs[Attribute.list.key] == Attribute.ol) {
       return QuillNumberPoint(
+        blockIndex: blockIndex,
+        sameIndentIndex: sameIndentIndex,
+        indentStyles:
+            defaultStyles?.lists?.numericIndentStyle ?? QuillIndentStyle.values,
+        line: line,
         index: index,
         indentLevelCounts: indentLevelCounts,
         count: count,
@@ -206,6 +227,11 @@ class EditableTextBlock extends StatelessWidget {
 
     if (attrs.containsKey(Attribute.codeBlock.key)) {
       return QuillNumberPoint(
+        sameIndentIndex: sameIndentIndex,
+        blockIndex: blockIndex,
+        indentStyles:
+            defaultStyles?.lists?.numericIndentStyle ?? QuillIndentStyle.values,
+        line: line,
         index: index,
         indentLevelCounts: indentLevelCounts,
         count: count,

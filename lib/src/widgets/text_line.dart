@@ -27,6 +27,7 @@ import 'delegate.dart';
 import 'keyboard_listener.dart';
 import 'link.dart';
 import 'proxy.dart';
+import 'style_widgets/script_text_span.dart';
 import 'text_selection.dart';
 
 class TextLine extends StatefulWidget {
@@ -295,12 +296,30 @@ class _TextLineState extends State<TextLine> {
     final isLink = nodeStyle.containsKey(Attribute.link.key) &&
         nodeStyle.attributes[Attribute.link.key]!.value != null;
 
+    final superSubcript = nodeStyle.attributes[Attribute.superSubscript.key];
+    final isSubscript = superSubcript?.value == Attribute.subscript.value;
+    final isSuperscript = superSubcript?.value == Attribute.superscript.value;
+    final textStyle = _getInlineTextStyle(
+        textNode, defaultStyles, nodeStyle, lineStyle, isLink);
+    final recognizer = isLink && canLaunchLinks ? _getRecognizer(node) : null;
+    final mouseCursor =
+        isLink && canLaunchLinks ? SystemMouseCursors.click : null;
+
+    if (isSuperscript || isSubscript) {
+      return ScriptTextSpan(
+        isSuperscript: isSuperscript,
+        recognizer: recognizer,
+        mouseCursor: mouseCursor,
+        text: textNode.value,
+        textStyle: textStyle,
+      );
+    }
+
     return TextSpan(
       text: textNode.value,
-      style: _getInlineTextStyle(
-          textNode, defaultStyles, nodeStyle, lineStyle, isLink),
-      recognizer: isLink && canLaunchLinks ? _getRecognizer(node) : null,
-      mouseCursor: isLink && canLaunchLinks ? SystemMouseCursors.click : null,
+      style: textStyle,
+      recognizer: recognizer,
+      mouseCursor: mouseCursor,
     );
   }
 
@@ -357,6 +376,15 @@ class _TextLineState extends State<TextLine> {
           break;
         default:
           res = res.merge(TextStyle(fontSize: getFontSize(size.value)));
+      }
+    }
+    final script = textNode.style.attributes[Attribute.superSubscript.key];
+    if (script != null && script.value != null) {
+      if (script.value == Attribute.subscript.value) {
+        res = res.merge(defaultStyles.subscript);
+      }
+      if (script.value == Attribute.superscript.value) {
+        res = res.merge(defaultStyles.superscript);
       }
     }
 

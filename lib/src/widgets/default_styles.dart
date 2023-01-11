@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
-import '../models/documents/attribute.dart';
-import '../models/documents/style.dart';
+import '../../flutter_quill.dart';
 import '../utils/platform.dart';
-import 'style_widgets/checkbox_point.dart';
 
 class QuillStyles extends InheritedWidget {
   const QuillStyles({
@@ -128,10 +126,12 @@ class DefaultListBlockStyle extends DefaultTextBlockStyle {
     Tuple2<double, double> verticalSpacing,
     Tuple2<double, double> lineSpacing,
     BoxDecoration? decoration,
-    this.checkboxUIBuilder,
-  ) : super(style, verticalSpacing, lineSpacing, decoration);
+    this.checkboxUIBuilder, {
+    this.numericIndentStyle = QuillIndentStyle.values,
+  }) : super(style, verticalSpacing, lineSpacing, decoration);
 
   final QuillCheckboxBuilder? checkboxUIBuilder;
+  final List<QuillIndentStyle> numericIndentStyle;
 }
 
 class DefaultStyles {
@@ -158,7 +158,12 @@ class DefaultStyles {
     this.sizeSmall,
     this.sizeLarge,
     this.sizeHuge,
+    this.superscript,
+    this.subscript,
   });
+
+  static const defaultFontSize = 16.0;
+  static const defaultLineHeight = 1.3;
 
   final DefaultTextBlockStyle? h1;
   final DefaultTextBlockStyle? h2;
@@ -169,6 +174,8 @@ class DefaultStyles {
   final TextStyle? small;
   final TextStyle? underline;
   final TextStyle? strikeThrough;
+  final TextStyle? subscript;
+  final TextStyle? superscript;
 
   /// Theme of inline code.
   final InlineCodeStyle? inlineCode;
@@ -189,8 +196,8 @@ class DefaultStyles {
     final themeData = Theme.of(context);
     final defaultTextStyle = DefaultTextStyle.of(context);
     final baseStyle = defaultTextStyle.style.copyWith(
-      fontSize: 16,
-      height: 1.3,
+      fontSize: defaultFontSize,
+      height: defaultLineHeight,
       decoration: TextDecoration.none,
     );
     const baseSpacing = Tuple2<double, double>(6, 0);
@@ -245,6 +252,8 @@ class DefaultStyles {
             baseStyle, const Tuple2(0, 0), const Tuple2(0, 0), null),
         bold: const TextStyle(fontWeight: FontWeight.bold),
         italic: const TextStyle(fontStyle: FontStyle.italic),
+        subscript: baseStyle,
+        superscript: baseStyle,
         small: const TextStyle(fontSize: 12),
         underline: const TextStyle(decoration: TextDecoration.underline),
         strikeThrough: const TextStyle(decoration: TextDecoration.lineThrough),
@@ -312,27 +321,30 @@ class DefaultStyles {
 
   DefaultStyles merge(DefaultStyles other) {
     return DefaultStyles(
-        h1: other.h1 ?? h1,
-        h2: other.h2 ?? h2,
-        h3: other.h3 ?? h3,
-        paragraph: other.paragraph ?? paragraph,
-        bold: other.bold ?? bold,
-        italic: other.italic ?? italic,
-        small: other.small ?? small,
-        underline: other.underline ?? underline,
-        strikeThrough: other.strikeThrough ?? strikeThrough,
-        inlineCode: other.inlineCode ?? inlineCode,
-        link: other.link ?? link,
-        color: other.color ?? color,
-        placeHolder: other.placeHolder ?? placeHolder,
-        lists: other.lists ?? lists,
-        quote: other.quote ?? quote,
-        code: other.code ?? code,
-        indent: other.indent ?? indent,
-        align: other.align ?? align,
-        leading: other.leading ?? leading,
-        sizeSmall: other.sizeSmall ?? sizeSmall,
-        sizeLarge: other.sizeLarge ?? sizeLarge,
-        sizeHuge: other.sizeHuge ?? sizeHuge);
+      h1: other.h1 ?? h1,
+      h2: other.h2 ?? h2,
+      h3: other.h3 ?? h3,
+      paragraph: other.paragraph ?? paragraph,
+      bold: other.bold ?? bold,
+      italic: other.italic ?? italic,
+      small: other.small ?? small,
+      underline: other.underline ?? underline,
+      strikeThrough: other.strikeThrough ?? strikeThrough,
+      inlineCode: other.inlineCode ?? inlineCode,
+      link: other.link ?? link,
+      color: other.color ?? color,
+      placeHolder: other.placeHolder ?? placeHolder,
+      lists: other.lists ?? lists,
+      quote: other.quote ?? quote,
+      code: other.code ?? code,
+      indent: other.indent ?? indent,
+      align: other.align ?? align,
+      leading: other.leading ?? leading,
+      sizeSmall: other.sizeSmall ?? sizeSmall,
+      sizeLarge: other.sizeLarge ?? sizeLarge,
+      sizeHuge: other.sizeHuge ?? sizeHuge,
+      subscript: other.subscript ?? subscript,
+      superscript: other.superscript ?? superscript,
+    );
   }
 }

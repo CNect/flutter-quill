@@ -1,11 +1,24 @@
+// import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
-import '../../models/documents/attribute.dart';
+import '../../../flutter_quill.dart' hide Text;
+
 import '../text_block.dart';
+
+enum QuillIndentStyle {
+  number,
+  letter,
+  roman,
+}
 
 class QuillNumberPoint extends StatelessWidget {
   const QuillNumberPoint({
+    required this.blockIndex,
+    required this.indentStyles,
+    required this.line,
     required this.index,
+    required this.sameIndentIndex,
     required this.indentLevelCounts,
     required this.count,
     required this.style,
@@ -16,7 +29,11 @@ class QuillNumberPoint extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
+  final int blockIndex;
+  final List<QuillIndentStyle> indentStyles;
+  final Line line;
   final int index;
+  final int sameIndentIndex;
   final Map<int?, int> indentLevelCounts;
   final int count;
   final TextStyle style;
@@ -27,19 +44,30 @@ class QuillNumberPoint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var s = index.toString();
+    final suffix = withDot ? '.' : '';
+    final indentStyles =
+        this.indentStyles.isEmpty ? QuillIndentStyle.values : this.indentStyles;
+    final n = sameIndentIndex + index;
+    final hasIndentAttribute = attrs.containsKey(Attribute.indent.key);
+
     int? level = 0;
-    if (!attrs.containsKey(Attribute.indent.key) &&
-        !indentLevelCounts.containsKey(1)) {
+
+    if (!hasIndentAttribute && !indentLevelCounts.containsKey(1)) {
+      // log('$sameIndentIndex ($index/${this.count})...$n');
       indentLevelCounts.clear();
+      final s = _formatIndentStyle(n, indentStyles.first);
       return Container(
         alignment: AlignmentDirectional.topEnd,
         width: width,
         padding: EdgeInsetsDirectional.only(end: padding),
-        child: Text(withDot ? '$s.' : s, style: style),
+        child: Text(
+          '$s$suffix',
+          style: style,
+        ),
       );
     }
-    if (attrs.containsKey(Attribute.indent.key)) {
+
+    if (hasIndentAttribute) {
       level = attrs[Attribute.indent.key]!.value;
     } else {
       // first level but is back from previous indent level
@@ -53,22 +81,31 @@ class QuillNumberPoint extends StatelessWidget {
     final count = (indentLevelCounts[level] ?? 0) + 1;
     indentLevelCounts[level] = count;
 
-    s = count.toString();
-    if (level % 3 == 1) {
-      // a. b. c. d. e. ...
-      s = _toExcelSheetColumnTitle(count);
-    } else if (level % 3 == 2) {
-      // i. ii. iii. ...
-      s = _intToRoman(count);
-    }
-    // level % 3 == 0 goes back to 1. 2. 3.
+    final s = _formatIndentStyle(
+      n,
+      indentStyles[level % indentStyles.length],
+    );
+    // log('${" " * level}$sameIndentIndex ($index/${this.count})...$n');
 
     return Container(
       alignment: AlignmentDirectional.topEnd,
       width: width,
       padding: EdgeInsetsDirectional.only(end: padding),
-      child: Text(withDot ? '$s.' : s, style: style),
+      // child: Text(withDot ? '$blockIndex$s.' : '$blockIndex$s',
+      //	style: style),
+      child: Text('$s$suffix', style: style),
     );
+  }
+
+  String _formatIndentStyle(int n, QuillIndentStyle style) {
+    switch (style) {
+      case QuillIndentStyle.number:
+        return '$n';
+      case QuillIndentStyle.letter:
+        return _toExcelSheetColumnTitle(n);
+      case QuillIndentStyle.roman:
+        return _intToRoman(n);
+    }
   }
 
   String _toExcelSheetColumnTitle(int n) {
@@ -106,3 +143,26 @@ class QuillNumberPoint extends StatelessWidget {
     return builder.toString().toLowerCase();
   }
 }
+
+
+
+
+// [log] 0 (1/1)...1
+// [log]  0 (1/1)...1
+// [log]   0 (1/1)...1
+// [log]    0 (1/1)...1
+// [log] 1 (1/2)...1
+// [log] 1 (2/2)...2
+// [log]  0 (1/1)...1
+// [log]   0 (1/1)...1
+// [log]    0 (1/1)...1
+// [log] 3 (1/2)...3
+// [log] 3 (2/2)...4
+// [log]  0 (1/2)...0
+// [log]  0 (2/2)...1
+// [log]   0 (1/1)...1
+// [log]    0 (1/3)...-1
+// [log]    0 (2/3)...0
+// [log]    0 (3/3)...1
+// [log] 5 (1/1)...6
+
