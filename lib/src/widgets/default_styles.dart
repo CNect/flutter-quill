@@ -256,8 +256,8 @@ class DefaultStyles {
         underline: const TextStyle(decoration: TextDecoration.underline),
         strikeThrough: const TextStyle(decoration: TextDecoration.lineThrough),
         inlineCode: InlineCodeStyle(
-          backgroundColor: Colors.grey.withOpacity(0.1),
-          radius: const Radius.circular(3),
+          // backgroundColor: Colors.grey.withOpacity(0.1),
+          // radius: const Radius.circular(3),
           style: inlineCodeStyle,
           header1: inlineCodeStyle.copyWith(
             fontSize: 32,
